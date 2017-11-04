@@ -6,10 +6,7 @@ import android.content.Intent;
 import android.content.pm.PackageManager;
 import android.graphics.Bitmap;
 import android.graphics.BitmapFactory;
-import android.graphics.Canvas;
-import android.graphics.Color;
 import android.graphics.Matrix;
-import android.graphics.Paint;
 import android.net.Uri;
 import android.os.Environment;
 import android.provider.MediaStore;
@@ -19,19 +16,11 @@ import android.support.v4.content.FileProvider;
 import android.support.v7.app.AppCompatActivity;
 import android.os.Bundle;
 import android.util.Log;
-import android.util.SparseArray;
 import android.view.View;
 import android.widget.Button;
 import android.widget.ImageView;
 import android.widget.TextView;
 import android.widget.Toast;
-
-import com.google.android.gms.vision.Frame;
-import com.google.android.gms.vision.face.Face;
-import com.google.android.gms.vision.face.FaceDetector;
-import com.google.android.gms.vision.text.TextBlock;
-import com.google.android.gms.vision.text.TextRecognizer;
-import com.google.android.gms.vision.face.Landmark;
 
 import java.io.File;
 import java.io.FileNotFoundException;
@@ -43,8 +32,6 @@ public class MainActivity extends AppCompatActivity {
     private TextView scanResults;
     private ImageView imageView;
     private Uri imageUri;
-    private FaceDetector faceDetector;
-    private TextRecognizer textRecognizer;
     private static final int REQUEST_WRITE_PERMISSION = 20;
     private static final String SAVED_INSTANCE_URI = "uri";
     private static final String SAVED_INSTANCE_BITMAP = "bitmap";
@@ -73,17 +60,6 @@ public class MainActivity extends AppCompatActivity {
                         String[]{Manifest.permission.WRITE_EXTERNAL_STORAGE}, REQUEST_WRITE_PERMISSION);
             }
         });
-        prepareDetectors();
-    }
-
-    private void prepareDetectors() {
-        faceDetector = new FaceDetector.Builder(getApplicationContext())
-                .setTrackingEnabled(false)
-                .setLandmarkType(FaceDetector.ALL_LANDMARKS)
-                .setClassificationType(FaceDetector.ALL_CLASSIFICATIONS)
-                .build();
-        textRecognizer = new TextRecognizer.Builder(getApplicationContext())
-                .build();
     }
 
     @Override
@@ -112,52 +88,8 @@ public class MainActivity extends AppCompatActivity {
     }
 
     private void doScans() throws Exception {
-        Bitmap bitmap = decodeBitmapUri(this, imageUri);
-        if (faceDetector.isOperational() && bitmap != null) {
-            editedBitmap = Bitmap.createBitmap(bitmap.getWidth(), bitmap
-                    .getHeight(), bitmap.getConfig());
-            Paint paint = new Paint(Paint.ANTI_ALIAS_FLAG);
-            paint.setColor(Color.RED);
-            paint.setStyle(Paint.Style.STROKE);
-            paint.setStrokeWidth(3f);
-            Canvas canvas = new Canvas(editedBitmap);
-            canvas.drawBitmap(bitmap, 0, 0, paint);
-            Frame frame = new Frame.Builder().setBitmap(editedBitmap).build();
-            SparseArray<Face> faces = faceDetector.detect(frame);
-
-            for (int index = 0; index < faces.size(); ++index) {
-                Face face = faces.valueAt(index);
-                canvas.drawRect(
-                        face.getPosition().x,
-                        face.getPosition().y,
-                        face.getPosition().x + face.getWidth(),
-                        face.getPosition().y + face.getHeight(), paint);
-
-                for (Landmark landmark : face.getLandmarks()) {
-                    int cx = (int) (landmark.getPosition().x);
-                    int cy = (int) (landmark.getPosition().y);
-                    canvas.drawCircle(cx, cy, 5, paint);
-                }
-            }
-
-            imageView.setImageBitmap(editedBitmap);
-        } else {
-            Toast.makeText(this.getApplicationContext(), "could not initialize faceDetector", Toast.LENGTH_SHORT).show();
-        }
-
-        if (textRecognizer.isOperational() && bitmap != null) {
-            Frame frame = new Frame.Builder().setBitmap(bitmap).build();
-            SparseArray<TextBlock> detect = textRecognizer.detect(frame);
-            StringBuilder sb = new StringBuilder();
-            for(int index=0; index<detect.size(); ++index){
-                int key = detect.keyAt(index);
-                sb.append(detect.get(key).getValue());
-                sb.append("\n");
-            }
-            scanResults.setText(sb.toString());
-        }else{
-            Toast.makeText(this.getApplicationContext(), "could not initialize TextRecognizer", Toast.LENGTH_SHORT).show();
-        }
+        editedBitmap = decodeBitmapUri(this, imageUri);
+        imageView.setImageBitmap(editedBitmap);
     }
 
     private void takePicture() {
@@ -182,8 +114,6 @@ public class MainActivity extends AppCompatActivity {
     @Override
     protected void onDestroy() {
         super.onDestroy();
-        faceDetector.release();
-        textRecognizer.release();
     }
 
 

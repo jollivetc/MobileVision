@@ -10,6 +10,7 @@ import android.support.v4.app.ActivityCompat;
 import android.support.v7.app.AppCompatActivity;
 import android.os.Bundle;
 import android.util.Log;
+import android.util.SparseArray;
 import android.widget.Toast;
 
 import com.google.android.gms.common.ConnectionResult;
@@ -17,10 +18,9 @@ import com.google.android.gms.common.GoogleApiAvailability;
 import com.google.android.gms.samples.vision.face.facetracker.ui.camera.CameraSourcePreview;
 import com.google.android.gms.samples.vision.face.facetracker.ui.camera.GraphicOverlay;
 import com.google.android.gms.vision.CameraSource;
-import com.google.android.gms.vision.MultiProcessor;
-import com.google.android.gms.vision.Tracker;
-import com.google.android.gms.vision.face.Face;
-import com.google.android.gms.vision.face.FaceDetector;
+import com.google.android.gms.vision.Detector;
+import com.google.android.gms.vision.Frame;
+
 
 import java.io.IOException;
 
@@ -54,23 +54,13 @@ public class MainActivity extends AppCompatActivity {
     }
 
     private void createCameraSource() {
-        Context context = getApplicationContext();
-        FaceDetector detector = new FaceDetector.Builder(context)
-                .setClassificationType(FaceDetector.ALL_CLASSIFICATIONS)
-                .build();
-
-        detector.setProcessor(
-                new MultiProcessor.Builder<>(new MultiProcessor.Factory<Face>() {
-                    @Override
-                    public Tracker<Face> create(Face face) {
-                        return new GraphicFaceTracker(graphicOverlay, getResources());
-                    }
-                }).build());
-
-        if (!detector.isOperational()) {
-            Log.w(TAG, "Face detector dependencies are not yet available.");
-        }
-        cameraSource = new CameraSource.Builder(context, detector)
+        final Context context = getApplicationContext();
+        cameraSource = new CameraSource.Builder(context, new Detector<Object>() {
+            @Override
+            public SparseArray<Object> detect(Frame frame) {
+                return null;
+            }
+        })
                 .setRequestedPreviewSize(640, 480)
                 .setFacing(CameraSource.CAMERA_FACING_FRONT)
                 .setRequestedFps(30.0f)
