@@ -31,7 +31,7 @@ class FaceGraphic extends GraphicOverlay.Graphic {
 
     FaceGraphic(GraphicOverlay overlay, Resources resources) {
         super(overlay);
-        drawable = resources.getDrawable(R.drawable.captain);
+        drawable = resources.getDrawable(R.drawable.flash);
         this.resources = resources;
     }
 
