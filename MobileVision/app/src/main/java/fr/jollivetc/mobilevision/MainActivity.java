@@ -103,11 +103,6 @@ public class MainActivity extends AppCompatActivity {
 
     @Override
     protected void onSaveInstanceState(Bundle outState) {
-        if (imageUri != null) {
-            outState.putParcelable(SAVED_INSTANCE_BITMAP, editedBitmap);
-            outState.putString(SAVED_INSTANCE_URI, imageUri.toString());
-            outState.putString(SAVED_INSTANCE_RESULT, scanResults.getText().toString());
-        }
         super.onSaveInstanceState(outState);
     }
 
